@@ -1,4 +1,6 @@
-import os, argparse, hashlib
+import argparse
+import hashlib
+import os
 from collections import defaultdict
 
 
@@ -107,8 +109,6 @@ def ask_files_numbers(count: int):
         if rep:
             for i in rep:
                 if i not in numbers:
-                    print("\nWrong option\n")
-                    rep = input("Enter file numbers to delete:\n").split()
                     break
             else:
                 return tuple(int(x) - 1 for x in set(rep))
