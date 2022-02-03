@@ -5,6 +5,11 @@ from collections import defaultdict
 
 
 def get_path():
+    """
+    Returns directory path from command line args.
+
+    :return: Path to directory.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("path", nargs="?", default=False)
     args = parser.parse_args()
@@ -12,7 +17,15 @@ def get_path():
         return args.path
 
 
-def get_files(path: str, form: str):
+def get_files(path: str, form: str = ""):
+    """
+    Returns dict of files {size: [paths]} from given directory grouped by size
+    if they end with given file format. (Returns all files if form not given)
+
+    :param path: Absolute path to directory
+    :param form: File format for file to endswith
+    :return: Dict {size: [paths to files with same size]}
+    """
     lst = defaultdict(list)
     for root, dirs, files in os.walk(path):
         for i in files:
@@ -27,6 +40,12 @@ def get_files(path: str, form: str):
 
 
 def choice_sorting():
+    """
+    Asks user to choice size sorting option.
+    1 - Descending; 2 - Ascending.
+
+    :return: False if 1; True if 2
+    """
     print("Size sorting options:\n1. Descending\n2. Ascending\n")
     srt = input("Enter a sorting option:\n")
     while srt not in ("1", "2"):
@@ -36,6 +55,12 @@ def choice_sorting():
 
 
 def print_files(lst: defaultdict, srt: bool):
+    """
+    Prints files in given sorting order from given dict of files paths grouped by size.
+
+    :param lst: Dict of files paths grouped by size(key=size)
+    :param srt: False - Descending order; True - Ascending
+    """
     srt_keys = sorted(lst, reverse=srt)
     for i in srt_keys:
         print()
@@ -45,14 +70,26 @@ def print_files(lst: defaultdict, srt: bool):
 
 
 def ask_yes_no(question: str):
+    """
+    Asks user to ask Y/N to given question.
+
+    :param question: Question to ask
+    :return: 0 if no; 1 if yes
+    """
     rep = input(f"\n{question}\n")
     while rep.lower() not in ("y", "yes", "n", "no"):
-        print("\nWrong option\n")
+        print("\nWrong option (Enter y/n)\n")
         rep = input(f"{question}\n")
     return 0 if rep in ("n", "no") else 1
 
 
 def check_hashes(files: list):
+    """Takes list of paths to files. Checks their hashes,
+    then group hash duplicates into dict.
+
+    :param files: List of paths to files
+    :return: Dict {hash: [duplicate files paths]}
+    """
     hashes_dict = {}
     for file in files:
         with open(file, "rb") as f:
@@ -69,6 +106,13 @@ def check_hashes(files: list):
 
 
 def get_duplicates(lst: defaultdict, srt: bool):
+    """
+    Returns a dict of duplicates grouped by size and hash.
+
+    :param lst: List of paths to files
+    :param srt: False - Descending order; True - Ascending
+    :return: Dictionary of duplicates {size: {hash: [ paths ]}}
+    """
     duplicates = {}
     srt_sizes = sorted(lst.keys(), reverse=srt)
     for size in srt_sizes:
@@ -79,6 +123,12 @@ def get_duplicates(lst: defaultdict, srt: bool):
 
 
 def print_files_duplicates(duplicates: dict):
+    """
+    Prints files from duplicates dict. Groups them by size,
+    hash and numerates them.
+
+    :param duplicates:  Duplicates dict {size: {hash: [ paths ]}}
+    """
     count = 1
     for size, hashes_dict in duplicates.items():
         if hashes_dict and hashes_dict.items():
@@ -92,6 +142,12 @@ def print_files_duplicates(duplicates: dict):
 
 
 def get_duplicates_paths(duplicates: dict):
+    """
+    Returns a dict with numerated files paths from duplicates dict for further deleting.
+
+    :param duplicates: Duplicates dict {size: {hash: [ paths ]}}
+    :return: Dict with numerated paths {1: "path", 2: "path",}
+    """
     paths = {}
     count = 0
     for size, d in duplicates.items():
@@ -103,6 +159,12 @@ def get_duplicates_paths(duplicates: dict):
 
 
 def ask_files_numbers(count: int):
+    """
+    Asks user to enter files indexes to delete.
+
+    :param count: Number of existing files.
+    :return: Tuple of files indexes
+    """
     numbers = [str(i + 1) for i in range(count)]
     rep = input("\nEnter file numbers to delete:\n").split()
     while True:
@@ -117,6 +179,13 @@ def ask_files_numbers(count: int):
 
 
 def delete_files(paths: dict, numbers: tuple):
+    """
+    Deletes files with given keys from dict of paths.
+
+    :param paths: Dict with numerated paths (get_duplicates_paths())
+    :param numbers: Tuple with keys for files to delete
+    :return: Prints total freed up space in bytes
+    """
     mem = 0
     for numb in paths:
         if numb in numbers:
